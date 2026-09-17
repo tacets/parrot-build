@@ -1,0 +1,11 @@
+export OLLAMA_HOST={{ llm_api }}
+# Toolless analysis — no tools means no fabricated tool output, no scope creep.
+recon()    { PATH="$HOME/.local/bin:$PATH" llm -t recon "$@"; }
+nextstep() { PATH="$HOME/.local/bin:$PATH" llm -t nextstep "$@"; }
+ask()      { PATH="$HOME/.local/bin:$PATH" llm "$*"; }
+# Agents. GPTME_CONTEXT_LENGTH must match what Ollama serves or gptme overfills
+# and Ollama silently truncates. No --no-confirm: it has run unrequested scans.
+agent()   { PATH="$HOME/.local/bin:$PATH" GPTME_CONTEXT_LENGTH={{ llm_fast_ctx }} \
+    gptme --model local/{{ llm_fast_model }} --prune-tool-output "$@"; }
+agent32() { PATH="$HOME/.local/bin:$PATH" GPTME_CONTEXT_LENGTH={{ llm_big_ctx }} \
+    gptme --model local/{{ llm_big_model }} --prune-tool-output "$@"; }

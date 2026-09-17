@@ -1,0 +1,90 @@
+---
+# Local LLM tooling: Ollama client + gptme agent + llm (toolless analysis),
+# all pointed at the GPU host. Additive role — upstream never touches this path,
+# so `git merge upstream/main` stays conflict-free.
+
+- name: Install system packages the LLM tooling needs
+  ansible.builtin.apt:
+    name:
+      - pandoc          # gptme read_url fails without it ("Pandoc is not installed")
+      - pipx
+      - python3-requests
+    state: present
+  become: true
+
+- name: Ensure pipx path is on PATH
+  ansible.builtin.command: pipx ensurepath
+  changed_when: false
+
+- name: Install CLI agents via pipx
+  community.general.pipx:
+    name: "{{ item.name }}"
+    state: install
+  loop:
+    - { name: "gptme[browser]" }   # agent with shell/file/browser/tmux tools
+    - { name: "llm" }              # toolless: pipe output in, get analysis out
+  loop_control: { label: "{{ item.name }}" }
+
+- name: Install llm-ollama plugin
+  ansible.builtin.command: "{{ ansible_env.HOME }}/.local/bin/llm install llm-ollama"
+  register: _llmplug
+  changed_when: "'Successfully installed' in _llmplug.stdout"
+  failed_when: _llmplug.rc != 0 and 'already satisfied' not in _llmplug.stdout
+
+- name: Install Chromium for gptme's browser tool
+  ansible.builtin.command: "{{ ansible_env.HOME }}/.local/share/pipx/venvs/gptme/bin/playwright install chromium"
+  args:
+    creates: "{{ ansible_env.HOME }}/.cache/ms-playwright"
+
+# The GPU host's LAN path to :11434 is firewalled; reach it over the tailnet.
+# Parrot runs tailscale with --accept-dns=false, so MagicDNS does not resolve
+# and we need an explicit hosts entry.
+- name: Hosts entry for the GPU host over tailscale
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '\bkracken-ts\b'
+    line: "{{ llm_host_ip }}\tkracken-ts {{ llm_host_fqdn }}"
+    state: present
+  become: true
+
+- name: Deploy llm templates (anti-fabrication + operator heuristics)
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ ansible_env.HOME }}/.config/io.datasette.llm/templates/{{ item }}"
+    mode: "0644"
+  loop: [recon.yaml, nextstep.yaml]
+
+- name: Deploy gptme config
+  ansible.builtin.template:
+    src: gptme-config.toml.j2
+    dest: "{{ ansible_env.HOME }}/.config/gptme/config.toml"
+    mode: "0644"
+
+- name: Deploy websearch helper (self-hosted SearXNG, no API key)
+  ansible.builtin.template:
+    src: websearch.j2
+    dest: "{{ ansible_env.HOME }}/.local/bin/websearch"
+    mode: "0755"
+
+- name: Shell wrappers (agent/agent32/recon/nextstep/ask)
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    marker: "# {mark} ANSIBLE MANAGED: local llm tooling"
+    block: "{{ lookup('template', 'bashrc-llm.j2') }}"
+    create: false
+
+# gptme ships no SearXNG backend and only executes ```shell fences. Both are
+# patched; see files/ for the rationale. Re-run after `pipx upgrade gptme`.
+- name: Install gptme patch scripts
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ ansible_env.HOME }}/.local/bin/{{ item }}"
+    mode: "0755"
+  loop: [patch-gptme-searxng.py, patch-gptme-fences.py]
+
+- name: Apply gptme patches
+  ansible.builtin.command: "python3 {{ ansible_env.HOME }}/.local/bin/{{ item }}"
+  loop: [patch-gptme-searxng.py, patch-gptme-fences.py]
+  register: _patch
+  changed_when: "'patched' in _patch.stdout"
+  failed_when: false
