@@ -16,3 +16,6 @@ llm_big_ctx: 24576
 
 # NOTE: qwen2.5:14b is deliberately absent — it scores 60% with tools and emits
 # degenerate multilingual output. Fine for plain chat, never give it tools.
+
+# Personal toolkit. HTTPS so a fresh image can clone before SSH keys exist.
+scripts_repo: "https://github.com/tacets/scripts.git"
