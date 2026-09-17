@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Query the self-hosted SearXNG on kracken (tailnet-only) and print results.
+# Usage: websearch "query" [count]
+set -euo pipefail
+Q="${1:?usage: websearch \"query\" [count]}"
+N="${2:-5}"
+URL="{{ llm_searxng }}/search"
+curl -sG -m 60 "$URL" --data-urlencode "q=$Q" --data-urlencode "format=json" \
+  | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    sys.exit('websearch: SearXNG returned no JSON (is the tailnet up?)')
+res = d.get('results', [])
+if not res:
+    sys.exit('websearch: no results')
+for r in res[:$N]:
+    print('- %s' % (r.get('title') or '').strip())
+    print('  %s' % (r.get('url') or '').strip())
+    c = (r.get('content') or '').strip()
+    if c:
+        print('  %s' % c[:200])
+    print()
+"

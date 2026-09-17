@@ -1,0 +1,18 @@
+---
+# GPU host reachable over tailscale (LAN path to :11434 is firewalled).
+llm_host_ip: "100.75.155.35"
+llm_host_fqdn: "kracken.taila9e14f.ts.net"
+llm_api: "http://kracken-ts:11434"
+llm_searxng: "https://kracken.taila9e14f.ts.net:8443"
+
+# Fast default. 100% on tool-calling tests, fits one GPU, 1126 tok/s prefill.
+llm_fast_model: "llama3.1:8b"
+llm_fast_ctx: 8192
+
+# Capable. Also 100%, but ~4s/call. 24576 is the largest context that stays
+# fully on GPU on a 4x8GB host; 32768 spills to CPU.
+llm_big_model: "qwen2.5:32b-24k"
+llm_big_ctx: 24576
+
+# NOTE: qwen2.5:14b is deliberately absent — it scores 60% with tools and emits
+# degenerate multilingual output. Fine for plain chat, never give it tools.

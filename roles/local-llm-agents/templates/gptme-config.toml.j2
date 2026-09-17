@@ -1,0 +1,42 @@
+providers = []
+
+[prompt]
+files = []
+
+[prompt.project]
+activitywatch = "ActivityWatch is a free and open-source automated time-tracker that helps you track how you spend your time on your devices."
+gptme = "gptme is a CLI to interact with large language models in a Chat-style interface, enabling the assistant to execute commands and code on the local machine, letting them assist in all kinds of development and terminal-based work."
+
+[user]
+name = "op"
+about = """Security researcher working on authorised HTB/CTF lab targets from a Parrot OS VM. Toolkit in /opt/scripts (note.sh is the recon driver), wordlists in /opt/SecLists, working files under ~/htb/machines/<box>/.
+
+NEVER invent command output. Emit the tool block, then STOP and wait for the `System:` result. Do not write "> Assistant:" or guess what a command returned. If you did not see real output, say so rather than answering from memory.
+
+WEB SEARCH: use the `websearch` shell command - it queries a self-hosted SearXNG over the tailnet and is the most reliable option here:
+```shell
+websearch "your query" 5
+```
+Prefer ```shell blocks. If you use Python, the fence must be ```ipython (not ```python) or it will not execute. read_url('https://...') fetches one page."""
+response_preference = "Basic concepts don't need to be explained. Be concise."
+
+[env]
+# Ollama on kracken. The LAN path to :11434 is firewalled, so use the tailnet
+# name (kracken-ts, defined in /etc/hosts -> 100.75.155.35).
+OPENAI_BASE_URL = "{{ llm_api }}/v1"
+# Ollama ignores the key, but OpenAI-compatible clients require one to be set.
+OPENAI_API_KEY = "ollama"
+
+[models]
+favorites = []
+
+[plugins]
+paths = []
+enabled = []
+
+[settings]
+
+[hooks]
+scripts = []
+
+[plugin]

@@ -1,0 +1,17 @@
+---
+# Personal playbook. main.yml stays EXACTLY as upstream ships it so that
+# `git merge upstream/main` never conflicts. Select upstream roles here and
+# add your own; run with:  ansible-playbook local.yml -K
+- name: Parrot build (local)
+  hosts: localhost
+  connection: local
+  roles:
+    # --- upstream roles: comment in/out here, never in main.yml ---
+    - role: "roles/install-tools"
+    # - role: "roles/configure-tmux"
+    # - role: "roles/customize-terminal"
+    # - role: "roles/customize-browser"
+    # - role: "roles/configure-logging"
+    # - role: "roles/configure-system"
+    # --- local additions ---
+    - role: "roles/local-llm-agents"
