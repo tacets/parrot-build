@@ -88,3 +88,52 @@
   register: _patch
   changed_when: "'patched' in _patch.stdout"
   failed_when: false
+
+# --- personal toolkit -------------------------------------------------------
+# note.sh (recon driver), scope (VPN scope enforcement), spray.py, htb-start.sh.
+# Cloned over HTTPS so a fresh image works before SSH keys exist; switch the
+# remote to SSH afterwards if you want to push.
+
+- name: Install git
+  ansible.builtin.apt:
+    name: git
+    state: present
+  become: true
+
+- name: Clone personal scripts toolkit to /opt/scripts
+  ansible.builtin.git:
+    repo: "{{ scripts_repo }}"
+    dest: /opt/scripts
+    version: main
+    update: true
+  become: true
+
+- name: Own /opt/scripts so it is editable without sudo
+  ansible.builtin.file:
+    path: /opt/scripts
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    recurse: true
+  become: true
+
+- name: Make toolkit executables runnable
+  ansible.builtin.file:
+    path: "/opt/scripts/{{ item }}"
+    mode: "0755"
+  loop: [note.sh, scope, htb-start.sh, spray.py, gobuster.sh, fuzz_vhosts.sh]
+  failed_when: false
+
+- name: Link scope onto PATH
+  ansible.builtin.file:
+    src: /opt/scripts/scope
+    dest: /usr/local/bin/scope
+    state: link
+  become: true
+
+- name: Ensure SecLists is present (wordlists referenced by note.sh)
+  ansible.builtin.git:
+    repo: https://github.com/danielmiessler/SecLists.git
+    dest: /opt/SecLists
+    depth: 1
+    update: false
+  become: true
