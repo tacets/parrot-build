@@ -1,3 +1,3 @@
 ---
 # defaults file for configure-logging
-distribution: "bookworm"
+distribution: "trixie"

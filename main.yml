@@ -2,6 +2,8 @@
 - name: "Customizing Parrot"
   hosts: localhost
   connection: local
+  environment:
+    NODE_NO_WARNINGS: "1"
   roles:
     - role: "roles/install-tools"
     - role: "roles/configure-tmux"
@@ -11,7 +13,7 @@
     - role: "roles/configure-system"
     - role: gantsign.visual-studio-code
       users:
-        - username: "{{ ansible_user_id }}" 
+        - username: "{{ ansible_user_id }}"
           visual_studio_code_extensions:
             - streetsidesoftware.code-spell-checker
             - ms-python.python
