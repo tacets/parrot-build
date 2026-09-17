@@ -1,11 +1,15 @@
-** Make sure to pip install ansible, apt has an older copy **
+** Install Ansible with pipx. On Parrot 7.5+ (Debian 13) a system pip install fails with PEP 668 (externally-managed), and apt ships an older copy. **
 
 # Instructions
 * Start with Parrot HTB Edition
-* Install Ansible (python3 -m pip install ansible)
+* Install Ansible with pipx:
+  * `sudo apt install -y pipx`
+  * `pipx install --include-deps ansible`
+  * `pipx ensurepath` (then open a new shell)
+  * `pipx inject ansible pipx` (the playbook's pipx tasks run via Ansible's own interpreter, which needs the pipx module)
 * Clone and enter the repo (git clone)
 * ansible-galaxy install -r requirements.yml
-* Make sure we have a sudo token (sudo whoami)
+* Make sure we have a sudo token (sudo whoami) — or run the playbook with `-K`
 * ansible-playbook main.yml
 
 # Off-Video Changes
