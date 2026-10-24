@@ -1,0 +1,13 @@
+---
+# User-local .NET for decompiling managed (.NET) PEs with ilspycmd.
+# Native PEs use ghidra/radare2 from Parrot base; this role is .NET only.
+dotnet_channel: "8.0"
+dotnet_dir: "{{ ansible_env.HOME }}/.dotnet"
+dotnet_tools_dir: "{{ ansible_env.HOME }}/.dotnet/tools"
+dotnet_install_dir: "{{ ansible_env.HOME }}/.dotnet-install"
+dotnet_install_url: "https://dot.net/v1/dotnet-install.sh"
+
+# 8.2.0.7535 targets net6.0; it runs on the 8.0 runtime via
+# DOTNET_ROLL_FORWARD=Major (set in the bashrc block). Pinned because the
+# NuGet "latest" targets a newer runtime than the SDK above and fails to run.
+ilspycmd_version: "8.2.0.7535"

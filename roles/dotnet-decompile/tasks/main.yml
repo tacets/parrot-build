@@ -1,0 +1,58 @@
+---
+# .NET decompiler tooling (ilspycmd), user-local under ~/.dotnet. Additive role:
+# upstream never touches this path, so merges stay conflict-free. SDK is installed
+# with the official script (no apt vendor repo, no root for the runtime itself).
+
+- name: Ensure curl is present (dotnet-install.sh needs it)
+  ansible.builtin.apt:
+    name: curl
+    state: present
+  become: true
+
+- name: Create dotnet-install script dir
+  ansible.builtin.file:
+    path: "{{ dotnet_install_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Fetch the official dotnet-install script
+  ansible.builtin.get_url:
+    url: "{{ dotnet_install_url }}"
+    dest: "{{ dotnet_install_dir }}/dotnet-install.sh"
+    mode: "0755"
+
+- name: Install the .NET SDK (user-local)
+  ansible.builtin.command:
+    cmd: "{{ dotnet_install_dir }}/dotnet-install.sh --channel {{ dotnet_channel }} --install-dir {{ dotnet_dir }}"
+    creates: "{{ dotnet_dir }}/dotnet"
+
+# -g lands the tool in ~/.dotnet/tools. DOTNET_ROOT must point at the user-local
+# runtime or the tool's apphost cannot find it ("You must install .NET").
+- name: Install ilspycmd global tool
+  ansible.builtin.command:
+    cmd: "{{ dotnet_dir }}/dotnet tool install -g ilspycmd --version {{ ilspycmd_version }}"
+  environment:
+    DOTNET_ROOT: "{{ dotnet_dir }}"
+    DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+    PATH: "{{ dotnet_dir }}:{{ dotnet_tools_dir }}:{{ ansible_env.PATH }}"
+  register: _ilspy
+  changed_when: "'successfully installed' in _ilspy.stdout | lower"
+  failed_when: _ilspy.rc != 0 and 'already installed' not in _ilspy.stdout
+
+- name: Wire dotnet env into bashrc
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    marker: "# {mark} ANSIBLE MANAGED: dotnet decompile tooling"
+    create: false
+    block: |
+      export DOTNET_ROOT="$HOME/.dotnet"
+      export PATH="$PATH:$HOME/.dotnet:$HOME/.dotnet/tools"
+      export DOTNET_ROLL_FORWARD=Major
+      export DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+- name: Smoke-test ilspycmd (proves roll-forward onto the installed runtime)
+  ansible.builtin.command: "{{ dotnet_tools_dir }}/ilspycmd --version"
+  environment:
+    DOTNET_ROOT: "{{ dotnet_dir }}"
+    DOTNET_ROLL_FORWARD: "Major"
+  changed_when: false
