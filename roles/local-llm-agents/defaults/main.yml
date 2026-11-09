@@ -1,6 +1,7 @@
 ---
 # GPU host reachable over tailscale (LAN path to :11434 is firewalled).
-llm_host_ip: "0.0.0.0"
+# Set the real tailnet IP in host_vars/localhost.yml (gitignored), not here.
+llm_host_ip: ""
 llm_host_fqdn: "kracken.taila9e14f.ts.net"
 llm_api: "http://kracken-ts:11434"
 llm_searxng: "https://kracken.taila9e14f.ts.net:8443"

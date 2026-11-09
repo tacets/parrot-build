@@ -22,7 +22,7 @@ response_preference = "Basic concepts don't need to be explained. Be concise."
 
 [env]
 # Ollama on kracken. The LAN path to :11434 is firewalled, so use the tailnet
-# name (kracken-ts, defined in /etc/hosts -> 0.0.0.0).
+# name (kracken-ts, defined in /etc/hosts via llm_host_ip in host_vars/localhost.yml).
 OPENAI_BASE_URL = "{{ llm_api }}/v1"
 # Ollama ignores the key, but OpenAI-compatible clients require one to be set.
 OPENAI_API_KEY = "ollama"
