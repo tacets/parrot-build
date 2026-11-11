@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
 # dnsrecon is a uv-managed project at /opt/dnsrecon, not a system package.
-cd /opt/dnsrecon && exec uv run dnsrecon "$@"
+# --project (not cd/--directory) so relative paths like --db stay relative to
+# the caller's cwd, not the project dir.
+exec uv run --project /opt/dnsrecon dnsrecon "$@"
