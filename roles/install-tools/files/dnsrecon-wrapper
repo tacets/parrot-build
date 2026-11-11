@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# dnsrecon is a uv-managed project at /opt/dnsrecon, not a system package.
+cd /opt/dnsrecon && exec uv run dnsrecon "$@"

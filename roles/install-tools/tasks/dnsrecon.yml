@@ -26,12 +26,14 @@
     PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
   changed_when: false
 
-- name: "Shell wrapper: dnsrecon runs via uv from /opt/dnsrecon"
+- name: "Remove old bashrc-function dnsrecon wrapper (bash functions aren't visible to scripts/cron)"
   ansible.builtin.blockinfile:
     path: "{{ ansible_env.HOME }}/.bashrc"
     marker: "# {mark} ANSIBLE MANAGED: dnsrecon wrapper"
-    block: |
-      dnsrecon() {
-        (cd /opt/dnsrecon && uv run dnsrecon "$@")
-      }
-    create: false
+    state: absent
+
+- name: "Install dnsrecon wrapper on PATH so it works in scripts, not just interactive shells"
+  ansible.builtin.copy:
+    src: dnsrecon-wrapper
+    dest: "{{ ansible_env.HOME }}/.local/bin/dnsrecon"
+    mode: "0755"
