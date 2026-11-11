@@ -1,0 +1,37 @@
+---
+# dnsrecon isn't packaged for apt and isn't pipx-installable as a standalone
+# CLI; it's a uv-managed project run in place with `uv run dnsrecon`.
+
+- name: "Clone dnsrecon to /opt/dnsrecon"
+  ansible.builtin.git:
+    repo: "{{ dnsrecon_repo }}"
+    dest: /opt/dnsrecon
+    version: master
+    update: true
+  become: true
+
+- name: "Own /opt/dnsrecon so uv can write its venv/lock without sudo"
+  ansible.builtin.file:
+    path: /opt/dnsrecon
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    recurse: true
+  become: true
+
+- name: "Sync dnsrecon's uv environment"
+  ansible.builtin.command: uv sync
+  args:
+    chdir: /opt/dnsrecon
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+  changed_when: false
+
+- name: "Shell wrapper: dnsrecon runs via uv from /opt/dnsrecon"
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    marker: "# {mark} ANSIBLE MANAGED: dnsrecon wrapper"
+    block: |
+      dnsrecon() {
+        (cd /opt/dnsrecon && uv run dnsrecon "$@")
+      }
+    create: false

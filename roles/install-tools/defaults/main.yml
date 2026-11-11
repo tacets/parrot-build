@@ -1,3 +1,5 @@
 ---
 # defaults file for configure-logging
 distribution: "trixie"
+
+dnsrecon_repo: "https://github.com/darkoperator/dnsrecon.git"
