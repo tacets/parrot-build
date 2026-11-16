@@ -6,3 +6,9 @@
 - include_tasks: gem-tools.yml
 - include_tasks: bloodhound.yml
 - include_tasks: dnsrecon.yml
+- name: "Install exploitdb/searchsploit"
+  include_tasks:
+    file: exploitdb.yml
+    apply:
+      tags: exploitdb
+  tags: exploitdb

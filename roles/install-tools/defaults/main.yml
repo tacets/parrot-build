@@ -3,3 +3,4 @@
 distribution: "trixie"
 
 dnsrecon_repo: "https://github.com/darkoperator/dnsrecon.git"
+exploitdb_repo: "https://gitlab.com/exploit-database/exploitdb.git"
